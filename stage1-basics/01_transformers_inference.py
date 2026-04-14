@@ -7,6 +7,11 @@ Stage 1: HuggingFace Transformers 本地推理
 3. 对比不同精度的显存占用和推理速度
 """
 
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+
 import torch
 import time
 import gc

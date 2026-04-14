@@ -3,7 +3,8 @@
     "allow": [
       "Bash(python:*)",
       "Bash(conda create:*)",
-      "Bash(/bin/df:*)"
+      "Bash(/bin/df:*)",
+      "Bash(/bin/ls -la /data2/lvliping/hf_cache)"
     ]
   }
 }

@@ -20,6 +20,11 @@ Stage 1: 显存估算实操
   KV Cache = 2 × num_layers × seq_len × num_kv_heads × head_dim × dtype_size
 """
 
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+
 import torch
 import gc
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
