@@ -1,0 +1,32 @@
+# vLLM 服务 Dockerfile
+# 自建镜像：CUDA 12.2 基础 + pip 安装 vLLM
+# 适配驱动 535（CUDA 12.2），官方镜像内置 CUDA 12.9 不兼容
+
+FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04
+
+# 避免交互式安装卡住
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 安装系统依赖
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-venv \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# 安装 vLLM（指定版本，与本地一致）
+# --timeout 增大超时：通过代理下载大包(432MB vllm + 915MB torch)需要更长时间
+RUN pip3 install --no-cache-dir --timeout=600 \
+    vllm==0.19.0
+
+# 设置环境变量
+ENV HF_HOME=/root/.cache/huggingface
+
+# 健康检查：vLLM 暴露 /health 端点
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+EXPOSE 8000
+
+ENTRYPOINT ["python3", "-m", "vllm.entrypoints.openai.api_server"]

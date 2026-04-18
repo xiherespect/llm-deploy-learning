@@ -4,7 +4,21 @@
       "Bash(python:*)",
       "Bash(conda create:*)",
       "Bash(/bin/df:*)",
-      "Bash(/bin/ls -la /data2/lvliping/hf_cache)"
+      "Bash(/bin/ls -la /data2/lvliping/hf_cache)",
+      "Bash(git:*)",
+      "Bash(pip show:*)",
+      "Bash(ls:*)",
+      "Bash(HF_HOME=/data2/lvliping/hf_cache python -c \"from huggingface_hub import snapshot_download; print\\(snapshot_download\\('Qwen/Qwen2.5-7B-Instruct', local_files_only=True\\)\\)\")",
+      "Bash(python3:*)",
+      "Bash(sort -k5 -h)",
+      "Bash(nvidia-container-cli --version)",
+      "Bash(docker --version)",
+      "Bash(docker compose:*)",
+      "WebSearch",
+      "Read(//proc/driver/nvidia/**)",
+      "Bash(nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv)",
+      "Bash(pip index:*)",
+      "Bash(pip3 install:*)"
     ]
   }
 }

@@ -28,3 +28,7 @@ Thumbs.db
 *.gguf
 *.pt
 *.pth
+
+.vscode
+.claude
+

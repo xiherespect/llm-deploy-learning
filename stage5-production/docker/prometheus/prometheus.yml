@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 15s       # 抓取间隔，LLM 指标不需要秒级
+  evaluation_interval: 15s   # 告警规则评估间隔
+
+rule_files:
+  - /etc/prometheus/alerts/vllm_alerts.yml
+
+scrape_configs:
+  - job_name: 'vllm'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['host.docker.internal:8000']
+        labels:
+          service: 'vllm'
+          model: 'qwen2.5-7b'
+    scrape_timeout: 10s      # 必须小于 scrape_interval

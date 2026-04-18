@@ -1,0 +1,38 @@
+groups:
+  - name: vllm_alerts
+    rules:
+      - alert: HighQueueLength
+        expr: vllm:num_requests_waiting > 10
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "vLLM 请求队列过长"
+          description: "当前等待请求数 {{ $value }} 超过阈值 10，持续 2 分钟"
+
+      - alert: CacheNearFull
+        expr: vllm:gpu_cache_usage_perc > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "vLLM GPU 缓存接近满载"
+          description: "GPU 缓存使用率 {{ $value }}% 超过 90% 阈值"
+
+      - alert: HighPreemptionRate
+        expr: rate(vllm:num_preemptions[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "vLLM 出现请求抢占"
+          description: "5分钟内出现 {{ $value }} 次抢占，说明显存压力大"
+
+      - alert: HighTTFT
+        expr: histogram_quantile(0.95, rate(vllm:e2e_request_latency_seconds_bucket[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "vLLM P95 延迟过高"
+          description: "P95 延迟 {{ $value }}s 超过 10s 阈值"

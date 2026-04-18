@@ -1,0 +1,85 @@
+# Stage 5: vLLM 全栈 Docker 部署（混合架构）
+#
+# 架构说明：
+#   vLLM 跑在宿主机上（需要 GPU + CUDA 12.2，容器内无法构建兼容镜像）
+#   Nginx / Prometheus / Grafana 跑在 Docker 中
+#
+# 服务组成：
+#   vllm       - vLLM 推理服务（宿主机，GPU）
+#   nginx      - 反向代理 + 限流 + 负载均衡
+#   prometheus - 监控指标采集
+#   grafana    - 监控可视化面板
+#
+# 使用方法：
+#   1. 先启动宿主机 vLLM：bash start_vllm.sh
+#   2. 再启动 Docker 服务：docker compose up -d
+#   3. 查看日志：docker compose logs -f nginx
+#   4. 停止所有服务：docker compose down && bash stop_vllm.sh
+#
+# 端口映射：
+#   80  → Nginx（对外 API 入口）
+#   8000→ vLLM（宿主机，直接访问调试用）
+#   9090→ Prometheus
+#   3000→ Grafana（admin/admin）
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: nginx-proxy
+    ports:
+      - "${NGINX_PORT:-80}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    extra_hosts:
+      # Linux 下需要手动映射 host.docker.internal
+      - "host.docker.internal:host-gateway"
+    networks:
+      - llm-deploy-net
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    container_name: prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./grafana/alerts/vllm_alerts.yml:/etc/prometheus/alerts/vllm_alerts.yml:ro
+      # 命名卷：监控数据持久化，容器重启不丢失
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=7d'
+      - '--storage.tsdb.retention.size=5GB'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - llm-deploy-net
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: grafana
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+    volumes:
+      # Provisioning：自动配置数据源和仪表盘
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      # 命名卷：仪表盘配置持久化
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - llm-deploy-net
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  llm-deploy-net:
+    driver: bridge

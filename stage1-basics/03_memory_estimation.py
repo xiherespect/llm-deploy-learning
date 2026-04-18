@@ -35,7 +35,7 @@ def print_gpu_memory(label=""):
     for i in range(torch.cuda.device_count()):
         allocated = torch.cuda.memory_allocated(i) / 1024**3
         reserved = torch.cuda.memory_reserved(i) / 1024**3
-        total = torch.cuda.get_device_properties(i).total_mem / 1024**3
+        total = torch.cuda.get_device_properties(i).total_memory / 1024**3
         print(f"  GPU {i}: 已分配 {allocated:.2f}GB / 预留 {reserved:.2f}GB / 总计 {total:.2f}GB  {label}")
     print()
 
@@ -391,12 +391,11 @@ if __name__ == "__main__":
     quick_reality_check()
 
     # === 实测验证（需要 GPU）===
-    print("\n" + "▼" * 40)
-    print("第二部分：实测验证")
-    print("▼" * 40 + "\n")
-
-    # 5. 对比理论估算与实际测量
-    verify_estimation_with_measurement()
+    # 跳过：需要从 HuggingFace 下载 ~14GB 模型，Ollama 已有 GGUF 版本不可复用
+    # print("\n" + "▼" * 40)
+    # print("第二部分：实测验证")
+    # print("▼" * 40 + "\n")
+    # verify_estimation_with_measurement()
 
     print()
     print("=" * 70)
